@@ -23,8 +23,16 @@ def generate_message():
 
 
 def generate_image_url():
-    image_number = random.randint(1, 7)
-    key = f"{image_number}.png"
+    response = s3.list_objects_v2(
+        Bucket=BUCKET
+    )
+
+    files = [
+        obj["Key"]
+        for obj in response.get("Contents", [])
+    ]
+
+    key = random.choice(files)
 
     image_url = s3.generate_presigned_url(
         "get_object",
