@@ -58,6 +58,64 @@ AWS Lambda
 Amazon CloudWatch
 ```
 
+## Deployment Steps
+The steps below walk through setting up the project from scratch in the AWS Console — creating and configuring each service so they work together as described in the [Architecture](#architecture) section.
+
+**1. Create a Telegram Bot**
+1. In Telegram, find **[@BotFather](https://t.me/BotFather)** and start a chat with it.
+2. Create a new bot and save the **bot token** it gives you.
+3. Send any message to your new bot (so it has something in its update history).
+4. Open the following link in your browser, replacing `<TOKEN>` with your bot token: [https://api.telegram.org/bot\<TOKEN\>/getUpdates](https://api.telegram.org/bot<TOKEN>/getUpdates)
+5. In the response, find the `"id":<id>` field, e.g. `"id":1869994999` — this is your **chat ID**.
+
+You'll need both the **bot token** and the **chat ID** in the next steps.
+
+**2. Create the Lambda Function**
+1. In the AWS Console, go to **Lambda**.
+2. Click **Create function**.
+3. Choose a name for the function.
+4. Under **Runtime**, select **Python**.
+5. Add the project code to `lambda_function.py`.
+6. Add the word list file `words.txt`.
+7. Open the **Configuration** tab, then go to **Environment variables**.
+8. Click **Edit** → **Add environment variable**, and add the following two variables:
+
+| Key     | Value                          |
+| ------- | ------------------------------- |
+| `TOKEN` | your Telegram bot token         |
+| `UID`   | your Telegram chat ID           |
+
+9. Click **Deploy**.
+
+**3. Add Images to S3**
+1. In the AWS Console, go to **S3**.
+2. Click **Create bucket**, give it a name, and click **Create bucket** again to confirm.
+3. Open the bucket and click **Upload** → **Add files**.
+4. Upload your images in **PNG** or **JPG** format.
+
+**4. Set Up IAM Access**
+This grants the Lambda function permission to access and read the images stored in S3.
+1. Open your Lambda function and go to **Configuration** → **Permissions**.
+2. Click on the **Role name** to open it in IAM.
+3. Click **Add permissions** → **Attach policies**.
+4. Search for and select **AmazonS3ReadOnlyAccess**.
+5. Click **Add permissions**.
+
+**5. Set Up the Schedule**
+1. In the AWS Console, search for **EventBridge Scheduler**.
+2. Click **Create schedule** and give it a name.
+3. Under **Schedule pattern**, select **Recurring schedule**.
+4. Set the [cron expression](https://crontab.guru/) you need for your desired schedule (e.g. `cron(0 9 * * ? *)` to run once a day at 9:00 AM UTC).
+5. Under **Flexible time window**, select **Off**.
+6. Click **Next**.
+7. Under **Target**, select **AWS Lambda** and choose your Lambda function.
+8. Click **Next**.
+9. Click **Next** again, then click **Create schedule**.
+
+**6. Monitor Activity**
+1. Open your Lambda function and go to the **Monitor** tab.
+2. Here you can view various metrics related to Lambda invocations, such as execution count, duration, and errors.
+
 ## Key Features
 * No manual intervention needed — runs fully hands-off once deployed.
 * No servers to manage or pay for when idle — serverless, pay-per-execution.
